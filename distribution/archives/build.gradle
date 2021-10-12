@@ -102,6 +102,13 @@ distribution_archives {
     }
   }
 
+  freebsdTar {
+    archiveClassifier = 'freebsd-x64'
+    content {
+      archiveFiles(modulesFiles('freebsd-x64'), 'tar', 'freebsd', 'x64', false)
+    }
+  }
+
   noJdkFreebsdTar {
     archiveClassifier = 'no-jdk-freebsd-x64'
     content {
