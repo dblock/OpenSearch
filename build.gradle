@@ -48,7 +48,7 @@ plugins {
   id 'lifecycle-base'
   id 'opensearch.docker-support'
   id 'opensearch.global-build-info'
-  id "com.diffplug.spotless" version "5.6.1" apply false
+  id "com.diffplug.spotless" version "6.2.2" apply false
 }
 
 apply from: 'gradle/build-complete.gradle'
@@ -168,8 +168,7 @@ tasks.register("verifyVersions") {
     // Read the list from maven central.
     // Fetch the metadata and parse the xml into Version instances because it's more straight forward here
     // rather than bwcVersion ( VersionCollection ).
-    //TODO OpenSearch - Update the maven repo URL for OpenSearch when available.
-    new URL('https://repo1.maven.org/maven2/org/elasticsearch/elasticsearch/maven-metadata.xml').openStream().withStream { s ->
+    new URL('https://repo1.maven.org/maven2/org/opensearch/opensearch/maven-metadata.xml').openStream().withStream { s ->
       BuildParams.bwcVersions.compareToAuthoritative(
         new XmlParser().parse(s)
           .versioning.versions.version
@@ -273,6 +272,14 @@ allprojects {
     // see https://discuss.gradle.org/t/add-custom-javadoc-option-that-does-not-take-an-argument/5959
     javadoc.options.encoding = 'UTF8'
     javadoc.options.addStringOption('Xdoclint:all,-missing', '-quiet')
+  }
+
+  // support for reproducible builds
+  tasks.withType(AbstractArchiveTask).configureEach {
+    // ignore file timestamps
+    // be consistent in archive file order
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
   }
 
   project.afterEvaluate {
@@ -433,11 +440,11 @@ allprojects {
   tasks.named('cleanEclipse') { dependsOn 'wipeEclipseSettings' }
   // otherwise the eclipse merging is *super confusing*
   tasks.named('eclipse') { dependsOn 'cleanEclipse', 'copyEclipseSettings' }
-  
+
   afterEvaluate {
      tasks.findByName("eclipseJdt")?.configure {
          dependsOn 'copyEclipseSettings'
-     } 
+     }
   }
 }
 
