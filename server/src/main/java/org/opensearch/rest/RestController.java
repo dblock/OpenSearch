@@ -53,6 +53,7 @@ import org.opensearch.core.indices.breaker.CircuitBreakerService;
 import org.opensearch.core.rest.RestStatus;
 import org.opensearch.core.xcontent.MediaType;
 import org.opensearch.core.xcontent.MediaTypeRegistry;
+import org.opensearch.core.xcontent.ToXContentObject;
 import org.opensearch.core.xcontent.XContentBuilder;
 import org.opensearch.http.HttpServerTransport;
 import org.opensearch.identity.IdentityService;
@@ -69,6 +70,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -89,7 +91,7 @@ import static org.opensearch.rest.BytesRestResponse.TEXT_CONTENT_TYPE;
  *
  * @opensearch.api
  */
-public class RestController implements HttpServerTransport.Dispatcher {
+public class RestController implements HttpServerTransport.Dispatcher, ToXContentObject {
 
     private static final Logger logger = LogManager.getLogger(RestController.class);
     private static final DeprecationLogger deprecationLogger = DeprecationLogger.getLogger(RestController.class);
@@ -569,6 +571,30 @@ public class RestController implements HttpServerTransport.Dispatcher {
             }
         }
         return validMethods;
+    }
+
+    @Override
+    public XContentBuilder toXContent(XContentBuilder builder, Params params) throws IOException {
+        builder.startObject("paths");
+
+        Iterator<MethodHandlers> all = handlers.retrieveAll();
+
+        while (all.hasNext()) {
+            MethodHandlers handlers = all.next();
+            builder.startObject(handlers.getPath().replace("{", ":").replace("}", ""));
+            for (RestRequest.Method method : handlers.getValidMethods()) {
+                builder.startObject(method.name().toLowerCase(Locale.ROOT))
+                    // .field("summary", "")
+                    // .field("description", "")
+                    // .startObject("responses", "")
+                    // .endObject())
+                    .endObject();
+            }
+            builder.endObject();
+        }
+
+        builder.endObject();
+        return builder;
     }
 
     private static final class ResourceHandlingHttpChannel implements RestChannel {
