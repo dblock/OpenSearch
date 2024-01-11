@@ -1,0 +1,12 @@
+"Test that the plugin returns an API spec":
+  - do:
+      api: {}
+
+  - match: { info.title: "opensearch" }
+  - match: { info.version: /.*-SNAPSHOT/ }
+  - match: { info.description: "The OpenSearch Project: https://opensearch.org/" }
+
+  - match: { paths./_plugins/api.get: {} }
+
+  - match: { "paths./{index}/_upgrade.post": {} }
+  - match: { "paths./{index}/_upgrade.get": {} }
